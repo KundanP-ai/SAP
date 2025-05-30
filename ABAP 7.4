@@ -95,5 +95,48 @@ Concatenate	with space
 
                           MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno	
                                 WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.	
+
+
+    Other								
+	Other code 							
+		exceptions raising 						
+								
+		" Instantiate Message Container						
+		          DATA : lo_msg TYPE REF TO /iwbep/if_message_container.						
+								
+		          CALL METHOD me->/iwbep/if_mgw_conv_srv_runtime~get_message_container						
+		            RECEIVING						
+		              ro_message_container = lo_msg.						
+								
+		          CALL METHOD lo_msg->add_message						
+		            EXPORTING						
+		              iv_msg_type   = /iwbep/cl_cos_logger=>error						
+		              iv_msg_id     = 'ZFM_VACUUM'						
+		              iv_msg_number = '003'.   " Enter Id						
+		          " Raising Exception						
+		          RAISE EXCEPTION TYPE /iwbep/cx_mgw_tech_exception						
+		            EXPORTING						
+		              message_container = lo_msg.						
+								
+
+ " Log message in the application log
+          me->/iwbep/if_sb_dpc_comm_services~log_message(
+            EXPORTING
+              iv_msg_type   = 'E'
+              iv_msg_id     = 'ZFM_VACUUM'
+              iv_msg_number = 003 ).
+          " Raise Exception
+          RAISE EXCEPTION TYPE /iwbep/cx_mgw_tech_exception
+            EXPORTING
+              textid = /iwbep/cx_mgw_tech_exception=>internal_error.
+
+
+lwa_final-pump_type = REDUCE zfm_particularity( INIT l_string TYPE string FOR lwa_pump_type IN lt_pump_type
+NEXT l_string = COND zfm_particularity( WHEN l_string IS INITIAL THEN lwa_pump_type-pump_type
+ELSE l_string && ',' && lwa_pump_type-pump_type ) ).
+
+CONCATENATE LINES OF lt_pump_type INTO lwa_final-pump_type SEPARATED BY ','.
+
+
       
 												
