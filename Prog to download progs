@@ -134,4 +134,5 @@ ENDLOOP.
 
 *after download all the programs to intimate user.
 
-MESSAGE s001(00) WITH 'Check your folder for the Programs downloaded'.
+MESSAGE s001(00) WITH 'Check your folder for the Programs downloaded' mc_filename.
+WRITE:  mc_filename.
