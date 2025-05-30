@@ -1,0 +1,99 @@
+CDS												
+	Annotations											
+		@ObjectModel.foreignKey.association: '_storage'										
+		@Consumption.valueHelpDefinition: [										
+		{ entity: { name: 'I_Storage_VH',										
+		element: 'LGORT' }										
+		}]										
+	Other											
+		SPROXY object documentation could be seen from SPROXY tcode and not from SE24										
+												
+												
+Append												
+	To table 
+            APPEND VALUE #( col1 = sy-index col2 = sy-index ** 2 ) TO wa_tab.										
+	variable	
+             APPEND |{ gi_qals-stat01 } { '-' } { gi_qave-vdatum DATE = USER }| TO gv_titleval.										
+For loop												
+	Simple	
+       data(lt_stocktype) = VALUE #( FOR ls_line IN lt_config ( ls_line-zto ) ).										
+	Corresponding
+         itab_target = CORRESPONDING #( itab_source MAPPING field2 = field1  field4 = field3 ).										
+	Where + Corr
+         DATA(lt_outputyps) = VALUE efg_tab_ranges( FOR ls_data IN lt_data  WHERE ( variable_name = k_pu_outpty )										
+		                                           ( CORRESPONDING #( ls_data MAPPING option = opti ) ) ).										
+	With TT	
+         DATA(lt_lang) =  VALUE fkk_rt_sprsl( FOR lwa_config IN lt_ztbc WHERE ( variable_name = 'LANGU' )										
+		                      ( sign = 'I' option = 'EQ' low = lwa_config-low   )  ).										
+	Sort table	
+         DATA(lt_sort) = VALUE abap_sortorder_tab( FOR lwa_sort IN it_order ( name = lwa_sort-property										
+		                            descending = COND #( when lwa_sort-order eq TEXT-001 then abap_true ELSE abap_false ) ) ).										
+		                            SORT et_entityset BY (lt_sort).										
+	Complex cond
+         ot_chem =  VALUE ztt_vccont_chem( FOR lwa_val_char IN lt_val_char WHERE ( charact = 'ZFM_VACUUM_MEDIA' )								                                      		
+		                     ( chemname = lwa_val_char-value_char chemsym = lwa_val_char-value_neutral										
+		                       special_inst = VALUE #( lt_val_char[ charact = 'ZFM_VACUUM_HAZARD' value_neutral = lwa_val_char-value_neutral ]-value_char )   ) ).										
+	IN condition	
+         ot_equnr = VALUE dfps_tb_lm_equnr( FOR lwa_line1 IN lt_eqplist										
+		                    WHERE ( equicatgry IN lt_eqcat ) ( equnr = lwa_line1-equipment ) ).										
+		                                                 										
+												
+Value												
+	Condition 	      i_symbols        = VALUE #( ( key = '&EMAIL_TO&'										
+	WHEN	                              value = COND #( WHEN i_rectype EQ 'QC' THEN |Dear Quality Control|										
+	ELSE	                                              WHEN i_rectype EQ 'LC' THEN |Dear Line Control| ) )										
+		                             ( key = '&HEADER_FIELD&'										
+		                               value = COND #( WHEN sy-cprog EQ g_cprog THEN |Expiry Date: { i_mseg-vfdat DATE = USER }|										
+		                                               ELSE |Quality Issue: { i_mseg-ablad }|  ) )										
+												
+  Select	Into multiple var	
+            SELECT SINGLE herst, typbz FROM equi INTO (@DATA(l_herst), @DATA(typbz))										
+		          WHERE equnr = @iv_equnr.										
+Read table												
+	Index
+         g_faxno = VALUE #( lt_fax[ 1 ]-fax_no optional ).										
+												
+	Variable 	
+     DATA(lv_attach) = lt_configuration[ variable_name = 'EMAIL_ATTACH' add_search = ud_data-vcode  ]-low.										
+		gv_adobe = VALUE #( lt_ztbc[ variable_name = 'ADOBE_ATTACH' sign = 'I' opti = 'EQ' ]-low OPTIONAL ).										
+		os_fetch-failure =  COND #( WHEN VALUE #( lt_val_char[ charact = 'ZFM_VACUUM_RUN_TO_FAIL' ]-value_char OPTIONAL ) 										
+		                                 EQ k_yes THEN abap_true ELSE abap_false ).										
+	WA	data(ls_flight) = it_flights [ carrid = 'SQ' connid = '0026' ]. 										
+												
+Move values												
+	WA	
+         gwa_zqmheader = VALUE #( method    = TEXT-011  l_spec = TEXT-012  u_spec    = TEXT-013 ).										
+	Index	
+       DATA(lv_idx) = line_index( gi_text[ table_line = 'Defect(s):' ] ).										
+	Line Exists	
+             IF line_exists( lt_ztqmr[ werks = lwa_mseg-werks ] ).  DATA(l_iretu) = abap_true.  ENDIF.										
+	No. of lines
+           DATA : l_lines TYPE i.    l_lines = lines( lt_lines ).										
+												
+												
+Contains	Checking contains	
+            IF is_mat_comp-code CP '*E0013*' .										
+	Remove leading 0	
+           DATA(l_equnr) = |{ is_print-equnr ALPHA = IN }|.										
+												
+Concatenate	with space	
+        DATA(l_flname) = |{ is_print-tplnr } | & | | & |{ is_print-pltxt }|.										
+		g_endline = | { TEXT-018 } { ' ' } { gwa_qals-prueflos } |.										
+												
+	Loop with Field Symbol	
+           LOOP AT gi_files ASSIGNING FIELD-SYMBOL(<fs_files>) WHERE file = TEXT-224										
+		        IF <fs_files> IS ASSIGNED AND <fs_files>-file = TEXT-224.										
+												
+												
+	Odata methods	
+         DATA lo_filter TYPE  REF TO /iwbep/if_mgw_req_filter.									 
+		    DATA lt_filter_select_options TYPE /iwbep/t_mgw_select_option.									      
+		    DATA lv_filter_str TYPE string.										
+		 lo_filter = io_tech_request_context->get_filter( ).										
+		    lt_filter_select_options = lo_filter->get_filter_select_options( ).										
+		    lv_filter_str = lo_filter->get_filter_string( ).										
+
+                          MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno	
+                                WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.	
+      
+												
