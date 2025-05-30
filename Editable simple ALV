@@ -155,5 +155,5 @@ FORM f_build_layout .
   CLEAR wa_layout.
   wa_layout-colwidth_optimize = 'X'.
   wa_layout-coltab_fieldname = 'CELLCOLOR'.
-
 ENDFORM.
+
