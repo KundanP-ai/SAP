@@ -1,0 +1,137 @@
+*&---------------------------------------------------------------------*
+*& Report ZTETSTSTSTS
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ztetstststs.
+
+*table declaration
+
+TABLES : tadir.
+
+*data declaration
+
+TYPES: abapline(255).
+
+DATA: i_repsrc TYPE STANDARD TABLE OF abapline  WITH HEADER LINE.
+
+DATA: BEGIN OF itab OCCURS 0,
+
+        pgmid    TYPE tadir-pgmid,
+
+        object   TYPE tadir-object,
+
+        obj_name TYPE tadir-obj_name,
+
+        devclass TYPE tadir-devclass,
+
+      END OF itab.
+
+DATA: prog(60) .
+
+DATA : mc_filename LIKE rlgrap-filename.
+
+DATA : filename TYPE string.
+
+PARAMETERS: p_dev TYPE tadir-devclass.
+
+*select statement.
+
+SELECT pgmid object obj_name devclass FROM tadir INTO TABLE itab
+
+WHERE pgmid = 'R3TR' AND
+
+      object = 'PROG' AND
+
+      devclass = p_dev.
+
+IF sy-subrc NE 0.
+
+  MESSAGE s001(00) WITH 'No programs available in the given package'.
+
+  EXIT.
+
+ENDIF.
+
+LOOP AT itab.
+
+  prog = itab-obj_name.
+
+  READ REPORT prog INTO i_repsrc.
+
+  CONCATENATE '\\mucsdn31\sops\01_SOPS_LTI\70_Free_for_use_by_LTI_teams\Kundan P\Work\' "'D:\reports\'
+
+                 prog
+
+                '.txt'
+
+      INTO mc_filename.
+
+  filename = mc_filename.
+
+*function module for download files into local system
+
+  CALL FUNCTION 'GUI_DOWNLOAD'
+    EXPORTING
+*     BIN_FILESIZE            =
+      filename                = filename
+*     FILETYPE                = 'ASC'
+*     APPEND                  = ' '
+*     WRITE_FIELD_SEPARATOR   = ' '
+*     HEADER                  = '00'
+*     TRUNC_TRAILING_BLANKS   = ' '
+*     WRITE_LF                = 'X'
+*     COL_SELECT              = ' '
+*     COL_SELECT_MASK         = ' '
+*     DAT_MODE                = ' '
+*     CONFIRM_OVERWRITE       = ' '
+*     NO_AUTH_CHECK           = ' '
+*     CODEPAGE                = ' '
+*     IGNORE_CERR             = ABAP_TRUE
+*     REPLACEMENT             = '#'
+*     WRITE_BOM               = ' '
+*   IMPORTING
+*     FILELENGTH              =
+    TABLES
+      data_tab                = i_repsrc
+    EXCEPTIONS
+      file_write_error        = 1
+      no_batch                = 2
+      gui_refuse_filetransfer = 3
+      invalid_type            = 4
+      no_authority            = 5
+      unknown_error           = 6
+      header_not_allowed      = 7
+      separator_not_allowed   = 8
+      filesize_not_allowed    = 9
+      header_too_long         = 10
+      dp_error_create         = 11
+      dp_error_send           = 12
+      dp_error_write          = 13
+      unknown_dp_error        = 14
+      access_denied           = 15
+      dp_out_of_memory        = 16
+      disk_full               = 17
+      dp_timeout              = 18
+      file_not_found          = 19
+      dataprovider_exception  = 20
+      control_flush_error     = 21
+      OTHERS                  = 22.
+
+  IF sy-subrc <> 0.
+
+* MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+
+*         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+
+  ENDIF.
+
+  CLEAR prog.
+
+  CLEAR i_repsrc.
+
+ENDLOOP.
+
+*after download all the programs to intimate user.
+
+MESSAGE s001(00) WITH 'Check your folder for the Programs downloaded'.
