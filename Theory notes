@@ -1,0 +1,8 @@
+Theory						
+	Class	Persistance class is created on top of table : creating field will create get and set method in same class 				
+	Odata	RFC calls 	Pull operation			if $filter is given along with field name and value in Odata query then GetEntitySet is called
+		API	Push operations			Other wise just give value like ('10001') after EntitySetName in query for GetEntity Method to be called 
+		Cardinality is very important as to connect how many field to target if its 0..n then its get _entity and 1..n is get_entityset				
+	Adobe	IN Adobe form for dynamic number of rows depending on table use floating field inside table->row->cell->floating field->bind normally				
+	Table entry	To create entries in SE16N, you can either use the "Maintain Entries" checkbox if enabled for the table,				
+		 or utilize debug mode by entering /h in the command field and setting the variables GD-EDIT and GD-SAPEDIT to "X". 				
