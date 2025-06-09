@@ -1,0 +1,716 @@
+REPORT YJNM_REPORT_OUPUT_TYPES message-id zrep .
+
+based on a demo program found on the web, and enhanced to
+
+include an ALV pop-up with selection of row(s)
+
+further amended to include an ALV grid with selection of row(s)
+
+type-pools: slis.
+
+DATA:
+
+HF_REPID LIKE SYST-REPID,
+
+I_FIELDCAT TYPE SLIS_T_FIELDCAT_ALV,
+
+R_FIELDCAT LIKE LINE OF I_FIELDCAT,
+
+BEGIN OF HF_DISVARIANT.
+
+INCLUDE STRUCTURE DISVARIANT.
+
+DATA:
+
+END OF HF_DISVARIANT,
+
+LAYOUT TYPE SLIS_LAYOUT_ALV.
+
+TABLES VBAK.
+
+types:
+
+begin of vbak_sel, "for ALV pop-up with row selection
+
+check(1) type c, "for selection checkbox
+
+color(3) type c. "for ALV-row background colour
+
+include structure vbak.
+
+types:
+
+end of vbak_sel.
+
+DATA:
+
+d_lines like sy-tabix,
+
+it_vbak like vbak occurs 0 with header line,
+
+it_vbak2 type vbak_sel OCCURS 0 WITH HEADER LINE.
+
+&----
+
+SELECTION-SCREEN begin of block ot with frame title text-001.
+
+SELECTION-SCREEN SKIP.
+
+PARAMETERS: ALV1 RADIOBUTTON GROUP ALV. "REUSE_ALV_LIST_DISPLAY
+
+SELECTION-SCREEN SKIP.
+
+PARAMETERS: ALVB RADIOBUTTON GROUP ALV. "REUSE_ALV_POPUP_TO_SELECT
+
+"without selection
+
+SELECTION-SCREEN SKIP.
+
+PARAMETERS: ALV2 RADIOBUTTON GROUP ALV. "REUSE_ALV_POPUP_TO_SELECT
+
+"with selection
+
+SELECTION-SCREEN SKIP.
+
+PARAMETERS: ALV3 RADIOBUTTON GROUP ALV. "REUSE_ALV_GRID_DISPLAY
+
+"without selection
+
+SELECTION-SCREEN SKIP.
+
+PARAMETERS: ALVC RADIOBUTTON GROUP ALV. "REUSE_ALV_GRID_DISPLAY
+
+"with selection
+
+selection-screen comment 6(40) text-004.
+
+SELECTION-SCREEN begin of block ci with frame title text-003.
+
+PARAMETERS:
+
+col1 radiobutton group co,
+
+col2 radiobutton group co,
+
+col3 radiobutton group co,
+
+col4 radiobutton group co,
+
+col5 radiobutton group co,
+
+col6 radiobutton group co,
+
+col7 radiobutton group co,
+
+col8 radiobutton group co,
+
+col9 radiobutton group co.
+
+SELECTION-SCREEN SKIP.
+
+PARAMETERS:
+
+int0 radiobutton group in,
+
+int1 radiobutton group in.
+
+SELECTION-SCREEN end of block ci.
+
+SELECTION-SCREEN SKIP.
+
+PARAMETERS: ALV4 RADIOBUTTON GROUP ALV. "NORMAL ABAP LIST
+
+SELECTION-SCREEN end of block ot.
+
+SELECTION-SCREEN begin of block ps with frame title text-002.
+
+SELECTION-SCREEN SKIP.
+
+PARAMETERS: ALL RADIOBUTTON GROUP SEL,
+
+NONE RADIOBUTTON GROUP SEL DEFAULT 'X'.
+
+SELECTION-SCREEN end of block ps.
+
+&----
+
+main processing
+
+case 'X'.
+
+when alv1. PERFORM SELECT1. PERFORM ALV_FUNC1.
+
+when alv2. PERFORM SELECT2. PERFORM ALV_FUNC2. PERFORM NORM.
+
+when alvb. PERFORM SELECT1. PERFORM ALV_FUNCB.
+
+when alv3. PERFORM SELECT1. PERFORM ALV_FUNC3.
+
+when alvc. PERFORM SELECT2. PERFORM ALV_FUNCC. PERFORM NORM.
+
+when alv4. PERFORM SELECT1. PERFORM NORM.
+
+when others.
+
+endcase.
+
+&----
+
+*& Form ALV_FUNC1
+
+&----
+
+FORM ALV_FUNC1 .
+
+CALL FUNCTION 'REUSE_ALV_LIST_DISPLAY'
+
+EXPORTING
+
+i_save = 'A'
+
+I_STRUCTURE_NAME = 'VBAK'
+
+TABLES
+
+T_OUTTAB = it_vbak
+
+EXCEPTIONS
+
+PROGRAM_ERROR = 1
+
+OTHERS = 2
+
+.
+
+IF SY-SUBRC <> 0.
+
+MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+
+WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+
+ENDIF.
+
+ENDFORM. " ALV_FUNC1
+
+&----
+
+*& Form ALV_FUNC2
+
+&----
+
+FORM ALV_FUNC2 .
+
+no fieldcat row needed for field CHECK
+
+CALL FUNCTION 'REUSE_ALV_FIELDCATALOG_MERGE'
+
+EXPORTING
+
+I_PROGRAM_NAME = sy-cprog
+
+I_STRUCTURE_NAME = 'VBAK'
+
+CHANGING
+
+ct_fieldcat = i_fieldcat[]
+
+EXCEPTIONS
+
+INCONSISTENT_INTERFACE = 1
+
+PROGRAM_ERROR = 2
+
+OTHERS = 3.
+
+IF sy-subrc <> 0.
+
+MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+
+WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+
+ENDIF.
+
+CALL FUNCTION 'REUSE_ALV_POPUP_TO_SELECT'
+
+EXPORTING
+
+i_screen_start_column = 5
+
+i_screen_start_line = 2
+
+i_screen_end_column = 200
+
+i_screen_end_line = 30
+
+i_checkbox_fieldname = 'CHECK'
+
+i_linemark_fieldname = 'COLOR'
+
+I_TITLE = 'Sales documents'
+
+I_ZEBRA = 'X'
+
+I_TABNAME = 1
+
+it_fieldcat = i_fieldcat[]
+
+I_STRUCTURE_NAME = 'vbak'
+
+TABLES
+
+T_OUTTAB = it_vbak2
+
+EXCEPTIONS
+
+PROGRAM_ERROR = 1
+
+OTHERS = 2.
+
+IF SY-SUBRC <> 0.
+
+MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+
+WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+
+ENDIF.
+
+selected documents
+
+loop at it_vbak2 where check = 'X'.
+
+move-corresponding it_vbak2 to it_vbak.
+
+append it_vbak.
+
+endloop.
+
+ENDFORM. " ALV_FUNC2
+
+&----
+
+*& Form ALV_FUNC3
+
+&----
+
+FORM ALV_FUNC3 .
+
+CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+
+EXPORTING
+
+i_save = 'A'
+
+I_STRUCTURE_NAME = 'vbak'
+
+I_GRID_TITLE = 'SALES ORDER INFO'
+
+TABLES
+
+T_OUTTAB = it_vbak
+
+EXCEPTIONS
+
+PROGRAM_ERROR = 1
+
+OTHERS = 2
+
+.
+
+IF SY-SUBRC <> 0.
+
+MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+
+WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+
+ENDIF.
+
+ENDFORM. " ALV_FUNC3
+
+&----
+
+*& Form NORM
+
+&----
+
+FORM NORM .
+
+skip 1.
+
+if alv2 eq 'X' or alvc eq 'X'.
+
+format intensified off.
+
+describe table it_vbak lines d_lines.
+
+if d_lines eq 0.
+
+write: / 'No documents selected.'.
+
+exit.
+
+else.
+
+write: / 'Selected documents'.
+
+endif.
+
+skip 2.
+
+endif.
+
+format intensified.
+
+WRITE: /'Document',
+
+' Created on',
+
+'Time',
+
+' Created by',
+
+' Sold-to party',
+
+' Amount'.
+
+format intensified off.
+
+skip 2.
+
+LOOP AT it_vbak.
+
+write: / it_vbak-vbeln,
+
+it_vbak-erdat,
+
+it_vbak-erzet,
+
+it_vbak-ERNAM,
+
+it_vbak-KUNNR,
+
+it_vbak-netwr,
+
+it_vbak-waerk.
+
+endloop.
+
+ENDFORM. " NORM
+
+&----
+
+*& Form SELECT1
+
+&----
+
+form SELECT1 .
+
+SELECT * FROM VBAK
+
+INTO CORRESPONDING FIELDS OF TABLE it_vbak
+
+UP TO 60 ROWS
+
+where vbeln > '0060000000'.
+
+endform. " SELECT1
+
+&----
+
+*& Form SELECT2
+
+&----
+
+form SELECT2 .
+
+data:
+
+d_col(1) type n,
+
+d_int(1) type n.
+
+SELECT * FROM VBAK
+
+INTO CORRESPONDING FIELDS OF TABLE it_vbak2
+
+UP TO 60 ROWS
+
+where vbeln > '0060000000'.
+
+if alvc eq 'X'.
+
+case 'X'.
+
+when col1. d_col = 1.
+
+when col2. d_col = 2.
+
+when col3. d_col = 3.
+
+when col4. d_col = 4.
+
+when col5. d_col = 5.
+
+when col6. d_col = 6.
+
+when col7. d_col = 7.
+
+when col8. d_col = 8.
+
+when col9. d_col = 9.
+
+when others.
+
+endcase.
+
+case 'X'.
+
+when int0. d_int = 0.
+
+when int1. d_int = 1.
+
+when others.
+
+endcase.
+
+endif.
+
+set checkbox & line-colour fields
+
+loop at it_vbak2.
+
+if alvc ne 'X'.
+
+add 1 to d_col. "change colour
+
+"Because of the size & type of d_col, when d_col = 9,
+
+" adding 1 makes d_col = 0.
+
+if d_col = 0. "happens after every nine rows
+
+d_col = 1. "can't have 0 for colour value
+
+if d_int eq 0. "switch intensity
+
+d_int = 1.
+
+else.
+
+d_int = 0.
+
+endif.
+
+endif.
+
+endif.
+
+the field to determine the row background colour has 3 characters:
+
+character 1 = "C"
+
+character 2 = colour [1-9]
+
+character 3 = intensity [0 or 1]
+
+concatenate 'C' d_col d_int into it_vbak2-color.
+
+if all = 'X'.
+
+it_vbak2-check = 'X'. "pre-check checkbox
+
+endif.
+
+modify it_vbak2.
+
+endloop.
+
+endform. " SELECT2
+
+&----
+
+*& Form ALV_FUNCB
+
+&----
+
+form ALV_FUNCB .
+
+CALL FUNCTION 'REUSE_ALV_POPUP_TO_SELECT'
+
+EXPORTING
+
+i_checkbox_fieldname = 'CHECK'
+
+I_TITLE = 'SALES ORDER INFO'
+
+I_ZEBRA = 'X'
+
+I_TABNAME = 1
+
+it_fieldcat = i_fieldcat[]
+
+I_STRUCTURE_NAME = 'vbak'
+
+TABLES
+
+T_OUTTAB = it_vbak
+
+EXCEPTIONS
+
+PROGRAM_ERROR = 1
+
+OTHERS = 2.
+
+IF SY-SUBRC <> 0.
+
+MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+
+WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+
+ENDIF.
+
+endform. " ALV_FUNCB
+
+&----
+
+*& Form ALV_FUNCC
+
+&----
+
+form ALV_FUNCC .
+
+data:
+
+set_pf_status type slis_formname value 'SET_PF_STATUS'.
+
+no fieldcat row needed for field CHECK
+
+CALL FUNCTION 'REUSE_ALV_FIELDCATALOG_MERGE'
+
+EXPORTING
+
+I_PROGRAM_NAME = sy-cprog
+
+I_STRUCTURE_NAME = 'VBAK'
+
+CHANGING
+
+ct_fieldcat = i_fieldcat[]
+
+EXCEPTIONS
+
+INCONSISTENT_INTERFACE = 1
+
+PROGRAM_ERROR = 2
+
+OTHERS = 3.
+
+IF sy-subrc <> 0.
+
+MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+
+WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+
+ENDIF.
+
+layout-box_fieldname = 'CHECK'.
+
+layout-info_fieldname = 'COLOR'.
+
+CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+
+EXPORTING
+
+I_GRID_TITLE = 'Sales documents'
+
+is_layout = layout
+
+it_fieldcat = i_fieldcat[]
+
+i_callback_program = sy-cprog
+
+i_callback_pf_status_set = set_pf_status
+
+i_callback_user_command = 'USER_COMMAND'
+
+TABLES
+
+T_OUTTAB = it_vbak2
+
+EXCEPTIONS
+
+PROGRAM_ERROR = 1
+
+OTHERS = 2.
+
+IF SY-SUBRC <> 0.
+
+MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+
+WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+
+ENDIF.
+
+selected documents
+
+loop at it_vbak2 where check = 'X'.
+
+move-corresponding it_vbak2 to it_vbak.
+
+append it_vbak.
+
+endloop.
+
+endform. " ALV_FUNCC
+
+&----
+
+*& Form set_pf_status
+
+&----
+
+FORM set_pf_status USING rt_extab TYPE slis_t_extab.
+
+set pf-status 'XBUT' excluding rt_extab.
+
+endform.
+
+&----
+
+*& Form user_command
+
+&----
+
+FORM user_command USING r_ucomm LIKE sy-ucomm
+
+rs_selfield TYPE slis_selfield.
+
+data:
+
+kount type i,
+
+msg(8) type c.
+
+case r_ucomm.
+
+when 'COUN'.
+
+loop at it_vbak2 where check = 'X'.
+
+add 1 to kount.
+
+endloop.
+
+write kount to msg.
+
+shift msg left deleting leading space.
+
+message i017 with 'No. of rows selected =' msg.
+
+when others.
+
+message i017 with 'OK code =' r_ucomm.
+
+endcase.
+
+endform.
+
